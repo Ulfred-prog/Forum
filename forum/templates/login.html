@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Logga in</h1>
+<form method="POST">
+  <div class="mb-3">
+    <label for="username" class="form-label">Användarnamn</label>
+    <input type="text" class="form-control" id="username" name="username" required>
+  </div>
+  <div class="mb-3">
+    <label for="password" class="form-label">Lösenord</label>
+    <input type="password" class="form-control" id="password" name="password" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Logga in</button>
+</form>
+{% endblock %}
