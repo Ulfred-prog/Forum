@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Chat</h2>
+<ul>
+    {% for message in messages %}
+        <li>{{ message.author.username }}: {{ message.content }} at {{ message.timestamp }}</li>
+    {% endfor %}
+</ul>
+<form method="POST">
+    <textarea name="content" required></textarea>
+    <button type="submit">Send</button>
+</form>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ topic.title }}</h2>
+<ul>
+    {% for post in posts %}
+        <li>
+            <p>{{ post.content }}</p>
+            <small>by {{ post.author.username }} at {{ post.timestamp }} - Likes: {{ post.likes }}</small>
+            <form method="POST" action="{{ url_for('like_post', post_id=post.id) }}" style="display:inline;">
+                <button type="submit">Like</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
+<h3>Add Post</h3>
+<form method="POST" action="{{ url_for('create_post', topic_id=topic.id) }}">
+    <textarea name="content" required></textarea>
+    <button type="submit">Post</button>
+</form>
+{% endblock %}
