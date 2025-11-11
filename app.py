@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -148,7 +148,23 @@ def chat():
         db.session.commit()
         return redirect(url_for('chat'))
     messages = ChatMessage.query.order_by(ChatMessage.timestamp).all()
-    return render_template('chat.html', messages=messages)
+    last_id = messages[-1].id if messages else 0
+    return render_template('chat.html', messages=messages, last_id=last_id)
+
+@app.route('/get_new_messages/<int:last_id>')
+def get_new_messages(last_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    new_messages = ChatMessage.query.filter(ChatMessage.id > last_id).order_by(ChatMessage.timestamp).all()
+    messages_list = []
+    for msg in new_messages:
+        messages_list.append({
+            'id': msg.id,
+            'author_username': msg.author.username,
+            'content': msg.content,
+            'timestamp': msg.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    return jsonify(messages_list)
 
 if __name__ == '__main__':
     with app.app_context():

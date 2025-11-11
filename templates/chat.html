@@ -2,13 +2,33 @@
 
 {% block content %}
 <h2>Chat</h2>
-<ul>
+<ul id="messages">
     {% for message in messages %}
-        <li>{{ message.author.username }}: {{ message.content }} at {{ message.timestamp }}</li>
+        <li data-id="{{ message.id }}">{{ message.author.username }}: {{ message.content }} at {{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</li>
     {% endfor %}
 </ul>
 <form method="POST">
     <textarea name="content" required></textarea>
     <button type="submit">Send</button>
 </form>
+<script>
+    let lastId = parseInt("{{ last_id }}");
+    setInterval(function() {
+        fetch('/get_new_messages/' + lastId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const ul = document.getElementById('messages');
+                    data.forEach(msg => {
+                        const li = document.createElement('li');
+                        li.setAttribute('data-id', msg.id);
+                        li.textContent = msg.author_username + ': ' + msg.content + ' at ' + msg.timestamp;
+                        ul.appendChild(li);
+                        lastId = msg.id;
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching new messages:', error));
+    }, 500);
+</script>
 {% endblock %}
