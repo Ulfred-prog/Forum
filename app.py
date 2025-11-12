@@ -167,6 +167,45 @@ def get_new_messages(last_id):
         })
     return jsonify(messages_list)
 
+@app.route('/get_new_topics/<int:last_topic_id>')
+def get_new_topics(last_topic_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    new_topics = Topic.query.filter(Topic.id > last_topic_id).order_by(Topic.timestamp).all()
+    topics_list = []
+    for topic in new_topics:
+        topics_list.append({
+            'id': topic.id,
+            'title': topic.title,
+            'creator_username': topic.creator.username,
+            'timestamp': topic.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    return jsonify(topics_list)
+
+@app.route('/get_new_posts/<int:topic_id>/<int:last_post_id>')
+def get_new_posts(topic_id, last_post_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    new_posts = Post.query.filter(Post.topic_id == topic_id, Post.id > last_post_id).order_by(Post.timestamp).all()
+    posts_list = []
+    for post in new_posts:
+        posts_list.append({
+            'id': post.id,
+            'content': post.content,
+            'author_username': post.author.username,
+            'timestamp': post.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'likes': post.likes
+        })
+    return jsonify(posts_list)
+
+@app.route('/get_post_likes/<int:topic_id>')
+def get_post_likes(topic_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    posts = Post.query.filter_by(topic_id=topic_id).all()
+    likes_dict = {post.id: post.likes for post in posts}
+    return jsonify(likes_dict)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

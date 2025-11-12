@@ -2,9 +2,29 @@
 
 {% block content %}
 <h2>Topics</h2>
-<ul>
+<ul id="topics">
     {% for topic in topics %}
-        <li><a href="{{ url_for('topic', topic_id=topic.id) }}">{{ topic.title }}</a> by {{ topic.creator.username }} at {{ topic.timestamp }}</li>
+        <li data-id="{{ topic.id }}"><a href="{{ url_for('topic', topic_id=topic.id) }}">{{ topic.title }}</a> by {{ topic.creator.username }} at {{ topic.timestamp }}</li>
     {% endfor %}
 </ul>
+<script data-last-topic-id="{{ topics[-1].id if topics else 0 }}">
+    let lastTopicId = parseInt(document.currentScript.dataset.lastTopicId);
+    setInterval(function() {
+        fetch('/get_new_topics/' + lastTopicId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const ul = document.getElementById('topics');
+                    data.forEach(function(topic) {
+                        const li = document.createElement('li');
+                        li.setAttribute('data-id', topic.id);
+                        li.innerHTML = '<a href="/topic/' + topic.id + '">' + topic.title + '</a> by ' + topic.creator_username + ' at ' + topic.timestamp;
+                        ul.appendChild(li);
+                        lastTopicId = topic.id;
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching new topics:', error));
+    }, 500);
+</script>
 {% endblock %}

@@ -2,11 +2,11 @@
 
 {% block content %}
 <h2>{{ topic.title }}</h2>
-<ul>
+<ul id="posts">
     {% for post in posts %}
-        <li>
+        <li data-id="{{ post.id }}">
             <p>{{ post.content }}</p>
-            <small>by {{ post.author.username }} at {{ post.timestamp }} - Likes: {{ post.likes }}</small>
+            <small>by {{ post.author.username }} at {{ post.timestamp }} - Likes: <span id="likes-{{ post.id }}">{{ post.likes }}</span></small>
             <form method="POST" action="{{ url_for('like_post', post_id=post.id) }}" style="display:inline;">
                 <button type="submit">Like</button>
             </form>
@@ -18,4 +18,39 @@
     <textarea name="content" required></textarea>
     <button type="submit">Post</button>
 </form>
+<script data-last-post-id="{{ posts[-1].id if posts else 0 }}" data-topic-id="{{ topic.id }}">
+    let lastPostId = parseInt(document.currentScript.dataset.lastPostId);
+    let topicId = parseInt(document.currentScript.dataset.topicId);
+    setInterval(function() {
+        fetch('/get_new_posts/' + topicId + '/' + lastPostId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const ul = document.getElementById('posts');
+                    data.forEach(function(post) {
+                        const li = document.createElement('li');
+                        li.setAttribute('data-id', post.id);
+                        li.innerHTML = '<p>' + post.content + '</p><small>by ' + post.author_username + ' at ' + post.timestamp + ' - Likes: <span id="likes-' + post.id + '">' + post.likes + '</span></small><form method="POST" action="/like/' + post.id + '" style="display:inline;"><button type="submit">Like</button></form>';
+                        ul.appendChild(li);
+                        lastPostId = post.id;
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching new posts:', error));
+    }, 500);
+
+    setInterval(function() {
+        fetch('/get_post_likes/' + topicId)
+            .then(response => response.json())
+            .then(data => {
+                for (let postId in data) {
+                    const span = document.getElementById('likes-' + postId);
+                    if (span) {
+                        span.textContent = data[postId];
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching likes:', error));
+    }, 500);
+</script>
 {% endblock %}
