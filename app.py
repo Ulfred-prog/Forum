@@ -66,7 +66,7 @@ def register():
         new_user = User(username=username, password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        flash('Registration successful')
+        flash('Registration successful', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
 
@@ -79,6 +79,7 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id
             session['username'] = user.username
+            flash('Login successful', 'success')
             return redirect(url_for('index'))
         flash('Invalid credentials')
     return render_template('login.html')
